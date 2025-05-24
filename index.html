@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>طائرة ورقية بمسار أفقي مستقيم وصور متبادلة</title>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #87ceeb 0%, #fff 100%);
+      overflow: hidden;
+      direction: rtl;
+    }
+    .sky {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* السحب */
+    .cloud {
+      position: absolute;
+      font-size: 64px;
+      opacity: 0.85;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 8px #fff8);
+      z-index: 1;
+      animation-timing-function: linear;
+    }
+    .cloud1 { top: 10vh; left: 5vw; animation: cloudMove1 38s linear infinite; }
+    .cloud2 { top: 22vh; left: 60vw; animation: cloudMove2 44s linear infinite reverse; }
+    .cloud3 { top: 50vh; left: 30vw; animation: cloudMove3 40s linear infinite; }
+    .cloud4 { top: 70vh; left: 80vw; animation: cloudMove4 55s linear infinite; }
+    @keyframes cloudMove1 { 0% { left: -15vw; } 100% { left: 110vw; } }
+    @keyframes cloudMove2 { 0% { left: -10vw; } 100% { left: 105vw; } }
+    @keyframes cloudMove3 { 0% { left: -20vw; } 100% { left: 120vw; } }
+    @keyframes cloudMove4 { 0% { left: -10vw; } 100% { left: 110vw; } }
+
+    /* الصور */
+    .scene-img {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 22px;
+      border: 4px solid #fff;
+      box-shadow: 0 4px 24px #0003;
+      z-index: 2;
+      background: #eee;
+      opacity: 0;
+      transition: opacity 0.7s;
+      pointer-events: none;
+      left: 50vw; top: 50vh;
+      transform: translate(-50%, -50%);
+    }
+    .scene-img.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* الطائرة الورقية */
+    .kite-img {
+      position: absolute;
+      width: 120px;
+      height: auto;
+      filter: drop-shadow(0 2px 12px #aaa8);
+      user-select: none;
+      z-index: 10;
+      left: 0; top: 0;
+      transition: transform 0.18s;
+      pointer-events: none;
+    }
+    .title {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 2em;
+      color: #333;
+      text-shadow: 1px 1px 10px #fff, 0 0 3px #87ceeb;
+      z-index: 20;
+    }
+  </style>
+</head>
+<body>
+  <div class="sky">
+    <!-- السحب -->
+    <span class="cloud cloud1">☁️</span>
+    <span class="cloud cloud2">☁️</span>
+    <span class="cloud cloud3">☁️</span>
+    <span class="cloud cloud4">☁️</span>
+    <!-- الصور -->
+    <img src="https://pplx-res.cloudinary.com/image/private/user_uploads/71429067/978bd8f9-475a-4d89-a0f9-856477bae87a/png-clipart-cartoon-hand-painted-paper-plane-cartoon-paper-hand-painted-paper.jpg" class="scene-img" id="img0">
+    <img src="https://pplx-res.cloudinary.com/image/private/user_uploads/71429067/9df0fd38-9a10-40ff-a066-e32b1c985096/Picsart_24-11-09_21-49-43-460.jpg" class="scene-img" id="img1">
+    <img src="https://pplx-res.cloudinary.com/image/private/user_uploads/71429067/1642e0d8-0bf4-4146-852a-b1ddf7a785e5/Picsart_25-05-02_19-10-45-521.jpg" class="scene-img" id="img2">
+    <img src="https://pplx-res.cloudinary.com/image/private/user_uploads/71429067/7b95f053-a18f-4e16-b7d4-da35a3f5f845/received_1436706623392660.jpg" class="scene-img" id="img3">
+    <!-- الطائرة الورقية -->
+    <img src="https://pplx-res.cloudinary.com/image/private/user_uploads/71429067/978bd8f9-475a-4d89-a0f9-856477bae87a/png-clipart-cartoon-hand-painted-paper-plane-cartoon-paper-hand-painted-paper.jpg" class="kite-img" id="kite">
+    <h1 class="title">حرك الطائرة الورقية باللمس أو الماوس!</h1>
+  </div>
+  <script>
+    // أماكن الصور (أربع نقاط على خط أفقي في منتصف الشاشة)
+    function getImgPositions() {
+      const midY = window.innerHeight * 0.5 - 90;
+      const total = 4;
+      const gap = window.innerWidth / (total + 1);
+      return [
+        {x: gap*1 - 90, y: midY},
+        {x: gap*2 - 90, y: midY},
+        {x: gap*3 - 90, y: midY},
+        {x: gap*4 - 90, y: midY}
+      ];
+    }
+    let imgPositions = getImgPositions();
+    const imgs = [
+      document.getElementById('img0'),
+      document.getElementById('img1'),
+      document.getElementById('img2'),
+      document.getElementById('img3')
+    ];
+    function placeImages() {
+      imgPositions = getImgPositions();
+      imgs.forEach((img, i) => {
+        img.style.left = imgPositions[i].x + 'px';
+        img.style.top = imgPositions[i].y + 'px';
+      });
+    }
+    placeImages();
+
+    // الطائرة الورقية - حركة مستقيمة أفقيًا
+    const kite = document.getElementById('kite');
+    let kiteX = imgPositions[0].x + 90;
+    let kiteY = window.innerHeight * 0.5;
+    let velocity = 0;
+    let targetVelocity = 0;
+    const maxVelocity = 6; // بكسل لكل فريم
+    const friction = 0.93;
+    let frame = 0;
+
+    function animateKite() {
+      velocity += (targetVelocity - velocity) * 0.18;
+      if (targetVelocity === 0) velocity *= friction;
+      if (Math.abs(velocity) < 0.05) velocity = 0;
+
+      kiteX += velocity;
+      // حدود الشاشة
+      const minX = imgPositions[0].x + 90;
+      const maxX = imgPositions[3].x + 90;
+      if (kiteX < minX) kiteX = minX;
+      if (kiteX > maxX) kiteX = maxX;
+
+      // حركة دائرية طفيفة كل فترة
+      frame += 1;
+      const circleY = 18 * Math.sin(frame * 0.045);
+      const circleX = 12 * Math.cos(frame * 0.025);
+
+      kite.style.left = (kiteX + circleX - 60) + 'px';
+      kite.style.top = (kiteY + circleY - 60) + 'px';
+
+      // تدوير اتجاه الطائرة حسب الحركة
+      kite.style.transform = `rotate(${Math.atan2(circleY, velocity + 0.1) * 40}deg)`;
+
+      // إظهار صورة واحدة عند مرور الطائرة أمامها
+      let currentImg = 0;
+      for (let i = 0; i < imgPositions.length; i++) {
+        if (kiteX < imgPositions[i].x + 90) {
+          currentImg = i;
+          break;
+        }
+        currentImg = imgPositions.length - 1;
+      }
+      imgs.forEach((img, i) => {
+        img.classList.toggle('active', i === currentImg);
+      });
+
+      requestAnimationFrame(animateKite);
+    }
+
+    // تحكم باللمس/الماوس
+    function setDirection(dir) {
+      if (dir === 'forward') {
+        targetVelocity = maxVelocity;
+      } else if (dir === 'backward') {
+        targetVelocity = -maxVelocity;
+      }
+    }
+    function stopMove() {
+      targetVelocity = 0;
+    }
+
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
+        const x = e.touches[0].clientX;
+        if (x > window.innerWidth / 2) {
+          setDirection('forward');
+        } else {
+          setDirection('backward');
+        }
+      }
+    });
+    document.addEventListener('touchend', stopMove);
+
+    document.addEventListener('mousedown', function(e) {
+      if (e.button === 0) {
+        if (e.clientX > window.innerWidth / 2) {
+          setDirection('forward');
+        } else {
+          setDirection('backward');
+        }
+      }
+    });
+    document.addEventListener('mouseup', stopMove);
+
+    // إعادة ضبط أماكن الصور والمسار عند تغيير حجم الشاشة
+    window.addEventListener('resize', () => {
+      placeImages();
+      kiteY = window.innerHeight * 0.5;
+    });
+
+    animateKite();
+  </script>
+</body>
+</html>
